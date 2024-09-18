@@ -29,10 +29,8 @@ o=- ${(0, utils_1.randomInt)()} 0 IN IP4 127.0.0.1
 s=rc-softphone-ts
 c=IN IP4 127.0.0.1
 t=0 0
-m=audio ${(0, utils_1.randomInt)()} RTP/AVP 109 0 8 9 101 103
+m=audio ${(0, utils_1.randomInt)()} RTP/AVP 0 8 9 101 103
 a=sendrecv
-a=rtpmap:109 OPUS/16000
-a=fmtp:109 useinbandfec=1;usedtx=0
 a=rtpmap:0 PCMU/8000
 a=rtpmap:8 pcma/8000
 a=rtpmap:9 g722/8000
@@ -40,7 +38,6 @@ a=rtpmap:101 telephone-event/8000
 a=fmtp:101 0-15
 a=rtpmap:103 telephone-event/16000
 a=fmtp:103 0-15
-a=rtcp-fb:109 ccm tmmbr
 `.trim();
             const newMessage = new sip_message_1.ResponseMessage(this.sipMessage, 200, {
                 'Content-Type': 'application/sdp',
