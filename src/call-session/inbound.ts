@@ -5,7 +5,7 @@ import CallSession from '.';
 
 type Protocol = { id: number, rtpmap: string, fmtp?: string };
 export const protocols: Protocol[] = [
-  // { id: 0, rtpmap: 'PCMU/8000' },
+  { id: 0, rtpmap: 'pcmu/8000' },
   // { id: 8, rtpmap: 'pcma/8000' },
   { id: 9, rtpmap: 'g722/8000' },
   { id: 101, rtpmap: 'telephone-event/8000', fmtp: '0-15' },
