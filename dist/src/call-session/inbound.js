@@ -18,9 +18,9 @@ const sip_message_1 = require("../sip-message");
 const utils_1 = require("../utils");
 const _1 = __importDefault(require("."));
 exports.protocols = [
+    { id: 9, rtpmap: 'g722/8000' },
     { id: 0, rtpmap: 'pcmu/8000' },
     // { id: 8, rtpmap: 'pcma/8000' },
-    { id: 9, rtpmap: 'g722/8000' },
     { id: 101, rtpmap: 'telephone-event/8000', fmtp: '0-15' },
     { id: 103, rtpmap: 'telephone-event/16000', fmtp: '0-15' },
 ];
