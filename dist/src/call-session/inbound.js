@@ -12,19 +12,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.protocols = void 0;
+exports.defaultProtocols = void 0;
 exports.createSDPAnswer = createSDPAnswer;
 const sip_message_1 = require("../sip-message");
 const utils_1 = require("../utils");
 const _1 = __importDefault(require("."));
-exports.protocols = [
-    { id: 9, rtpmap: 'g722/8000' },
+exports.defaultProtocols = [
     { id: 0, rtpmap: 'pcmu/8000' },
+    { id: 9, rtpmap: 'g722/8000' },
     // { id: 8, rtpmap: 'pcma/8000' },
     { id: 101, rtpmap: 'telephone-event/8000', fmtp: '0-15' },
     { id: 103, rtpmap: 'telephone-event/16000', fmtp: '0-15' },
 ];
-function createSDPAnswer(protocols, client = 'rc-ssoftphone-ts') {
+function createSDPAnswer(protocols = exports.defaultProtocols, client = 'rc-ssoftphone-ts') {
     const protocolIDs = protocols.map(p => p.id).join(' ');
     const attributes = protocols.map(p => `a=rtpmap:${p.id} ${p.rtpmap}` + (p.fmtp ? `\na=fmtp:${p.id} ${p.fmtp}` : '')).join('\n');
     return `
@@ -43,9 +43,9 @@ class InboundCallSession extends _1.default {
         this.localPeer = inviteMessage.headers.To;
         this.remotePeer = inviteMessage.headers.From;
     }
-    answer() {
+    answer(protocols, client) {
         return __awaiter(this, void 0, void 0, function* () {
-            const answerSDP = createSDPAnswer(exports.protocols, 'sibatel-softphone');
+            const answerSDP = createSDPAnswer(protocols, client);
             //     const answerSDP = `
             // v=0
             // o=- ${randomInt()} 0 IN IP4 127.0.0.1

@@ -3,16 +3,16 @@ import { randomInt } from '../utils';
 import type Softphone from '../softphone';
 import CallSession from '.';
 
-type Protocol = { id: number, rtpmap: string, fmtp?: string };
-export const protocols: Protocol[] = [
-  { id: 9, rtpmap: 'g722/8000' },
+export type Protocol = { id: number, rtpmap: string, fmtp?: string };
+export const defaultProtocols: Protocol[] = [
   { id: 0, rtpmap: 'pcmu/8000' },
+  { id: 9, rtpmap: 'g722/8000' },
   // { id: 8, rtpmap: 'pcma/8000' },
   { id: 101, rtpmap: 'telephone-event/8000', fmtp: '0-15' },
   { id: 103, rtpmap: 'telephone-event/16000', fmtp: '0-15' },
 ]
 
-export function createSDPAnswer(protocols: Protocol[], client = 'rc-ssoftphone-ts') {
+export function createSDPAnswer(protocols: Protocol[] = defaultProtocols, client = 'rc-ssoftphone-ts') {
   const protocolIDs = protocols.map(p=>p.id).join(' ');
   const attributes = protocols.map(p=>`a=rtpmap:${p.id} ${p.rtpmap}`+(p.fmtp?`\na=fmtp:${p.id} ${p.fmtp}`:'')).join('\n');
   return `
@@ -33,8 +33,8 @@ class InboundCallSession extends CallSession {
     this.remotePeer = inviteMessage.headers.From;
   }
 
-  public async answer() {
-    const answerSDP = createSDPAnswer(protocols, 'sibatel-softphone');
+  public async answer(protocols?: Protocol[], client?: string) {
+    const answerSDP = createSDPAnswer(protocols, client);
 //     const answerSDP = `
 // v=0
 // o=- ${randomInt()} 0 IN IP4 127.0.0.1
