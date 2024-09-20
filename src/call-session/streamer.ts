@@ -53,7 +53,7 @@ class Streamer {
           extension: false,
           marker: false,
           payloadOffset: 12,
-          payloadType: 0,
+          payloadType: 9,
           sequenceNumber: this.sequenceNumber,
           timestamp: this.timestamp,
           ssrc: this.ssrc,
