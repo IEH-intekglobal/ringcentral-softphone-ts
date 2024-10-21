@@ -1,5 +1,5 @@
 import { ResponseMessage, type InboundMessage } from '../sip-message';
-import { randomInt } from '../utils';
+import { randomInt, extractPhoneNumber } from '../utils';
 import type Softphone from '../softphone';
 import CallSession from '.';
 
@@ -31,6 +31,8 @@ class InboundCallSession extends CallSession {
     super(softphone, inviteMessage);
     this.localPeer = inviteMessage.headers.To;
     this.remotePeer = inviteMessage.headers.From;
+    this.To = extractPhoneNumber(this.localPeer);
+    this.From = extractPhoneNumber(this.remotePeer);
   }
 
   public async answer(protocols?: Protocol[], client?: string) {

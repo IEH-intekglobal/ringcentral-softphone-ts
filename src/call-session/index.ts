@@ -15,6 +15,8 @@ abstract class CallSession extends EventEmitter {
   public localPeer: string;
   public remotePeer: string;
   public remoteIP: string;
+  public To: string;
+  public From: string;
   public remotePort: number;
   public disposed = false;
 
