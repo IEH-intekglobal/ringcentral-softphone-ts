@@ -8,11 +8,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const events_1 = __importDefault(require("events"));
 const werift_rtp_1 = require("werift-rtp");
 const utils_1 = require("../utils");
-class Streamer {
+class Streamer extends events_1.default {
     constructor(callSesstion, buffer, payloadType = 0) {
+        super();
         this.paused = false;
         this.sequenceNumber = (0, utils_1.randomInt)();
         this.timestamp = (0, utils_1.randomInt)();
@@ -46,10 +51,11 @@ class Streamer {
         });
     }
     get finished() {
-        return this.buffer.length < 160;
+        return this.buffer.length < 640;
     }
     sendPacket() {
         if (!this.callSession.disposed && !this.paused && !this.finished) {
+            //       const temp = opus.encode(this.buffer.subarray(0, 640));
             const temp = this.buffer.subarray(0, 160);
             this.buffer = this.buffer.subarray(160);
             const rtpPacket = new werift_rtp_1.RtpPacket(new werift_rtp_1.RtpHeader({
@@ -69,13 +75,20 @@ class Streamer {
                 extensionLength: undefined,
                 extensions: [],
             }), temp);
-            this.callSession.send(rtpPacket.serialize());
+            this.callSession.send(this.callSession.srtpSession.encrypt(rtpPacket.payload, rtpPacket.header));
             this.sequenceNumber += 1;
             if (this.sequenceNumber > 65535) {
                 this.sequenceNumber = 0;
             }
-            this.timestamp += 160; // inbound audio use this time interval, in my opinion, it should be 20
-            setTimeout(() => this.sendPacket(), 20);
+            //       this.timestamp += 320;
+            this.timestamp += 160;
+            //       this.buffer = this.buffer.subarray(640);
+            if (this.finished) {
+                this.emit('finished');
+            }
+            else {
+                setTimeout(() => this.sendPacket(), 20);
+            }
         }
     }
 }

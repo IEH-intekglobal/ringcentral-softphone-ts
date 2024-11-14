@@ -12,25 +12,35 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const sip_message_1 = require("../sip-message");
 const _1 = __importDefault(require("."));
+const sip_message_1 = require("../sip-message");
 const utils_1 = require("../utils");
 class OutboundCallSession extends _1.default {
     constructor(softphone, answerMessage) {
         super(softphone, answerMessage);
         this.localPeer = answerMessage.headers.From;
         this.remotePeer = answerMessage.headers.To;
+        this.remoteKey = answerMessage.body.match(/AES_CM_128_HMAC_SHA1_80 inline:([\w+/]+)/)[1];
         this.init();
     }
     init() {
         return __awaiter(this, void 0, void 0, function* () {
             // wait for user to answer the call
             const answerHandler = (message) => {
-                if (message.headers.CSeq === this.sipMessage.headers.CSeq) {
+                if (message.headers.CSeq !== this.sipMessage.headers.CSeq) {
+                    return;
+                }
+                if (message.subject.startsWith('SIP/2.0 486')) {
+                    this.softphone.off('message', answerHandler);
+                    this.emit('busy');
+                    this.dispose();
+                    return;
+                }
+                if (message.subject.startsWith('SIP/2.0 200')) {
                     this.softphone.off('message', answerHandler);
                     this.emit('answered');
                     const ackMessage = new sip_message_1.RequestMessage(`ACK ${(0, utils_1.extractAddress)(this.remotePeer)} SIP/2.0`, {
-                        'Call-Id': this.callId,
+                        'Call-ID': this.callId,
                         From: this.localPeer,
                         To: this.remotePeer,
                         Via: this.sipMessage.headers.Via,
@@ -46,7 +56,7 @@ class OutboundCallSession extends _1.default {
     cancel() {
         return __awaiter(this, void 0, void 0, function* () {
             const requestMessage = new sip_message_1.RequestMessage(`CANCEL ${(0, utils_1.extractAddress)(this.remotePeer)} SIP/2.0`, {
-                'Call-Id': this.callId,
+                'Call-ID': this.callId,
                 From: this.localPeer,
                 To: (0, utils_1.withoutTag)(this.remotePeer),
                 Via: this.sipMessage.headers.Via,

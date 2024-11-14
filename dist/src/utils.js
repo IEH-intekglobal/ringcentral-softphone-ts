@@ -3,7 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractAddress = exports.withoutTag = exports.randomInt = exports.branch = exports.uuid = exports.generateAuthorization = void 0;
+exports.localKey = exports.extractAddress = exports.withoutTag = exports.randomInt = exports.branch = exports.uuid = exports.generateAuthorization = void 0;
+exports.extractPhoneNumber = extractPhoneNumber;
 const crypto_1 = __importDefault(require("crypto"));
 const md5 = (s) => crypto_1.default.createHash('md5').update(s).digest('hex');
 const generateResponse = (sipInfo, endpoint, nonce) => {
@@ -36,4 +37,11 @@ const withoutTag = (s) => s.replace(/;tag=.*$/, '');
 exports.withoutTag = withoutTag;
 const extractAddress = (s) => s.match(/<(sip:.+?)>/)[1];
 exports.extractAddress = extractAddress;
+const regPhoneNumber = /^<sip:(\d+)/;
+function extractPhoneNumber(peerHeader) {
+    var _a, _b;
+    return (_b = (_a = peerHeader.match(regPhoneNumber)) === null || _a === void 0 ? void 0 : _a[1]) !== null && _b !== void 0 ? _b : '--';
+}
+const keyAndSalt = crypto_1.default.randomBytes(30);
+exports.localKey = keyAndSalt.toString('base64').replace(/=+$/, '');
 //# sourceMappingURL=utils.js.map

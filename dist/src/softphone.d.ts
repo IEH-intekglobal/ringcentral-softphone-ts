@@ -1,8 +1,7 @@
-import type SipInfoResponse from '@rc-ex/core/lib/definitions/SipInfoResponse';
 import EventEmitter from 'events';
-import net from 'net';
-import type { OutboundMessage } from './sip-message';
-import { InboundMessage } from './sip-message';
+import { TLSSocket } from 'tls';
+import type SipInfoResponse from '@rc-ex/core/lib/definitions/SipInfoResponse';
+import { InboundMessage, OutboundMessage } from './sip-message';
 import InboundCallSession, { Protocol } from './call-session/inbound';
 import OutboundCallSession from './call-session/outbound';
 type SDPConfig = {
@@ -12,18 +11,20 @@ type SDPConfig = {
 declare class Softphone extends EventEmitter {
     sipInfo: SipInfoResponse;
     sdpConfig: SDPConfig;
-    client: net.Socket;
+    client: TLSSocket;
     fakeDomain: string;
     fakeEmail: string;
     private intervalHandle;
     private connected;
     constructor(sipInfo: SipInfoResponse, sdpConfig?: Partial<SDPConfig>);
+    private instanceId;
+    private registerCallId;
     register(): Promise<void>;
     enableDebugMode(): Promise<void>;
     revoke(): Promise<void>;
     send(message: OutboundMessage, waitForReply?: boolean): Promise<InboundMessage>;
     answer(inviteMessage: InboundMessage): Promise<InboundCallSession>;
     decline(inviteMessage: InboundMessage): Promise<void>;
-    call(callee: number, callerId?: number): Promise<OutboundCallSession>;
+    call(callee: number): Promise<OutboundCallSession>;
 }
 export default Softphone;

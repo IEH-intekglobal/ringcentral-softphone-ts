@@ -5,3 +5,5 @@ export declare const branch: () => string;
 export declare const randomInt: () => number;
 export declare const withoutTag: (s: string) => string;
 export declare const extractAddress: (s: string) => string;
+export declare function extractPhoneNumber(peerHeader: string): string;
+export declare const localKey: string;

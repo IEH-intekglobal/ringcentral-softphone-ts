@@ -1,5 +1,4 @@
 import crypto from 'crypto';
-import { createServer } from 'net';
 import type SipInfoResponse from '@rc-ex/core/lib/definitions/SipInfoResponse';
 
 const md5 = (s: string) => crypto.createHash('md5').update(s).digest('hex');

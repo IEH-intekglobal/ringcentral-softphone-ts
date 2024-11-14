@@ -1,6 +1,6 @@
+import CallSession from '.';
 import { type InboundMessage } from '../sip-message';
 import type Softphone from '../softphone';
-import CallSession from '.';
 export type Protocol = {
     id: number;
     rtpmap: string;

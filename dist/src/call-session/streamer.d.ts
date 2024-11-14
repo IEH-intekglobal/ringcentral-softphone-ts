@@ -1,5 +1,6 @@
+import EventEmitter from 'events';
 import type CallSession from '.';
-declare class Streamer {
+declare class Streamer extends EventEmitter {
     paused: boolean;
     private callSession;
     private buffer;

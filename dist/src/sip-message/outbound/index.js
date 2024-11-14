@@ -9,7 +9,6 @@ class OutboundMessage extends sip_message_1.default {
         super(subject, headers, body);
         this.headers['Content-Length'] = this.body.length.toString();
         this.headers['User-Agent'] = 'ringcentral-softphone-ts';
-        this.headers['Max-Forwards'] = '70';
     }
 }
 exports.default = OutboundMessage;

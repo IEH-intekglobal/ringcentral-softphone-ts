@@ -16,6 +16,7 @@ const fs_1 = __importDefault(require("fs"));
 const softphone_1 = __importDefault(require("../src/softphone"));
 // import waitFor from 'wait-for-async';
 const softphone = new softphone_1.default({
+    outboundProxy: process.env.SIP_INFO_OUTBOUND_PROXY,
     username: process.env.SIP_INFO_USERNAME,
     password: process.env.SIP_INFO_PASSWORD,
     authorizationId: process.env.SIP_INFO_AUTHORIZATION_ID,
@@ -32,14 +33,27 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         // answer the call
         const callSession = yield softphone.answer(inviteMessage);
         // receive audio
-        const writeStream = fs_1.default.createWriteStream(`${callSession.callId}.raw`, { flags: 'a' });
+        const writeStream = fs_1.default.createWriteStream(`${callSession.callId}.wav`, {
+            flags: 'a',
+        });
         callSession.on('audioPacket', (rtpPacket) => {
             writeStream.write(rtpPacket.payload);
         });
-        // // // send audio to remote peer
-        // const streamer = callSession.streamAudio(fs.readFileSync('demos/test.raw'));
+        // call transfer
         // await waitFor({ interval: 3000 });
-        // // you may interrupt audio sending at any time
+        // callSession.transfer(parseInt(process.env.ANOTHER_CALLEE_FOR_TESTING!, 10));
+        // // send audio to remote peer
+        // const streamer = callSession.streamAudio(fs.readFileSync('demos/test.wav'));
+        // // You may subscribe to the 'finished' event of the streamer to know when the audio sending is finished
+        // streamer.once('finished', () => {
+        //   console.log('audio sending finished');
+        // });
+        // // you may pause/resume/stop audio sending at any time
+        // await waitFor({ interval: 3000 });
+        // streamer.pause();
+        // await waitFor({ interval: 3000 });
+        // streamer.resume();
+        // await waitFor({ interval: 2000 });
         // streamer.stop();
         // either you or the peer hang up
         callSession.once('disposed', () => {
@@ -57,9 +71,6 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         // // hang up the call
         // await waitFor({ interval: 5000 });
         // callSession.hangup();
-        // // transfer the call
-        // await waitFor({ interval: 2000 });
-        // await callSession.transfer(process.env.ANOTHER_CALLEE_FOR_TESTING);
     }));
 });
 main();

@@ -1,5 +1,6 @@
-import EventEmitter from 'events';
 import dgram from 'dgram';
+import EventEmitter from 'events';
+import { SrtpSession } from 'werift-rtp';
 import { type InboundMessage } from '../sip-message';
 import type Softphone from '../softphone';
 import Streamer from './streamer';
@@ -10,16 +11,20 @@ declare abstract class CallSession extends EventEmitter {
     localPeer: string;
     remotePeer: string;
     remoteIP: string;
+    To: string;
+    From: string;
     remotePort: number;
     disposed: boolean;
+    srtpSession: SrtpSession;
     constructor(softphone: Softphone, sipMessage: InboundMessage);
+    set remoteKey(key: string);
     get callId(): string;
     send(data: string | Buffer): void;
-    transfer(target: string): Promise<void>;
     hangup(): Promise<void>;
     sendDTMF(char: '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '*' | '#'): Promise<void>;
     streamAudio(input: Buffer, payloadType?: number): Streamer;
     protected startLocalServices(): Promise<void>;
-    private dispose;
+    protected dispose(): void;
+    transfer(transferTo: number): void;
 }
 export default CallSession;

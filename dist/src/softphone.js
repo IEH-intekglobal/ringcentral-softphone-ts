@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = __importDefault(require("events"));
-const net_1 = __importDefault(require("net"));
+const tls_1 = __importDefault(require("tls"));
 const wait_for_async_1 = __importDefault(require("wait-for-async"));
 const sip_message_1 = require("./sip-message");
 const utils_1 = require("./utils");
@@ -52,17 +52,18 @@ class Softphone extends events_1.default {
         this.fakeDomain = (0, utils_1.uuid)() + '.invalid';
         this.fakeEmail = (0, utils_1.uuid)() + '@' + this.fakeDomain;
         this.connected = false;
+        this.instanceId = (0, utils_1.uuid)();
+        this.registerCallId = (0, utils_1.uuid)();
         this.sdpConfig = Object.assign(Object.assign({}, defaultSDPConfig), sdpConfig);
         this.sipInfo = sipInfo;
         if (this.sipInfo.domain === undefined) {
             this.sipInfo.domain = 'sip.ringcentral.com';
         }
         if (this.sipInfo.outboundProxy === undefined) {
-            this.sipInfo.outboundProxy = 'sip112-1241.ringcentral.com:5091';
+            this.sipInfo.outboundProxy = 'sip10.ringcentral.com:5096';
         }
-        this.client = new net_1.default.Socket();
         const tokens = this.sipInfo.outboundProxy.split(':');
-        this.client.connect(parseInt(tokens[1], 10), tokens[0], () => {
+        this.client = tls_1.default.connect({ host: tokens[0], port: parseInt(tokens[1], 10) }, () => {
             this.connected = true;
         });
         let cache = '';
@@ -72,7 +73,9 @@ class Softphone extends events_1.default {
                 return; // haven't received a complete message yet
             }
             // received two empty body messages
-            const tempMessages = cache.split('\r\nContent-Length: 0\r\n\r\n').filter((message) => message.trim() !== '');
+            const tempMessages = cache
+                .split('\r\nContent-Length: 0\r\n\r\n')
+                .filter((message) => message.trim() !== '');
             cache = '';
             for (let i = 0; i < tempMessages.length; i++) {
                 if (!tempMessages[i].includes('Content-Length: ')) {
@@ -90,19 +93,26 @@ class Softphone extends events_1.default {
                 yield (0, wait_for_async_1.default)({ interval: 100, condition: () => this.connected });
             }
             const sipRegister = () => __awaiter(this, void 0, void 0, function* () {
+                const fromTag = (0, utils_1.uuid)();
                 const requestMessage = new sip_message_1.RequestMessage(`REGISTER sip:${this.sipInfo.domain} SIP/2.0`, {
-                    'Call-Id': (0, utils_1.uuid)(),
-                    Contact: `<sip:${this.fakeEmail};transport=tcp>;expires=600`,
-                    From: `<sip:${this.sipInfo.username}@${this.sipInfo.domain}>;tag=${(0, utils_1.uuid)()}`,
+                    Via: `SIP/2.0/TLS ${this.client.localAddress}:${this.client.localPort};rport;branch=${(0, utils_1.branch)()};alias`,
+                    Route: `<sip:${this.sipInfo.outboundProxy};transport=tls;lr>`,
+                    'Max-Forwards': '70',
+                    From: `<sip:${this.sipInfo.username}@${this.sipInfo.domain}>;tag=${fromTag}`,
                     To: `<sip:${this.sipInfo.username}@${this.sipInfo.domain}>`,
-                    Via: `SIP/2.0/TCP ${this.fakeDomain};branch=${(0, utils_1.branch)()}`,
+                    'Call-ID': this.registerCallId,
+                    Supported: 'outbound, path',
+                    Contact: `<sip:${this.sipInfo.username}@${this.client.localAddress}:${this.client.localPort};transport=TLS;ob>;reg-id=1;+sip.instance="<urn:uuid:${this.instanceId}>"`,
+                    Expires: 300,
+                    Allow: 'PRACK, INVITE, ACK, BYE, CANCEL, UPDATE, INFO, SUBSCRIBE, NOTIFY, REFER, MESSAGE, OPTIONS',
                 });
                 const inboundMessage = yield this.send(requestMessage, true);
                 if (inboundMessage.subject.startsWith('SIP/2.0 200 ')) {
                     // sometimes the server will return 200 OK directly
                     return;
                 }
-                const wwwAuth = inboundMessage.headers['Www-Authenticate'] || inboundMessage.headers['WWW-Authenticate'];
+                const wwwAuth = inboundMessage.headers['Www-Authenticate'] ||
+                    inboundMessage.headers['WWW-Authenticate'];
                 const nonce = wwwAuth.match(/, nonce="(.+?)"/)[1];
                 const newMessage = requestMessage.fork();
                 newMessage.headers.Authorization = (0, utils_1.generateAuthorization)(this.sipInfo, nonce, 'REGISTER');
@@ -116,6 +126,15 @@ class Softphone extends events_1.default {
                 if (!inboundMessage.subject.startsWith('INVITE sip:')) {
                     return;
                 }
+                const outboundMessage = new sip_message_1.OutboundMessage('SIP/2.0 100 Trying', {
+                    Via: inboundMessage.headers.Via,
+                    'Call-ID': inboundMessage.headers['Call-ID'],
+                    From: inboundMessage.headers.From,
+                    To: inboundMessage.headers.To,
+                    CSeq: inboundMessage.headers.CSeq,
+                    'Content-Length': '0',
+                });
+                this.send(outboundMessage);
                 this.emit('invite', inboundMessage);
             });
         });
@@ -123,10 +142,10 @@ class Softphone extends events_1.default {
     enableDebugMode() {
         return __awaiter(this, void 0, void 0, function* () {
             this.on('message', (message) => console.log(`Receiving...(${new Date()})\n` + message.toString()));
-            const tcpWrite = this.client.write.bind(this.client);
+            const tlsWrite = this.client.write.bind(this.client);
             this.client.write = (message) => {
                 console.log(`Sending...(${new Date()})\n` + message);
-                return tcpWrite(message);
+                return tlsWrite(message);
             };
         });
     }
@@ -173,31 +192,36 @@ class Softphone extends events_1.default {
             this.send(newMessage);
         });
     }
-    call(callee, callerId) {
+    call(callee) {
         return __awaiter(this, void 0, void 0, function* () {
             const offerSDP = `
 v=0
-o=- ${(0, utils_1.randomInt)()} 0 IN IP4 127.0.0.1
+o=- ${Date.now()} 0 IN IP4 ${this.client.localAddress}
 s=rc-softphone-ts
-c=IN IP4 127.0.0.1
+c=IN IP4 ${this.client.localAddress}
 t=0 0
-m=audio ${(0, utils_1.randomInt)()} RTP/AVP 0 101
-a=rtpmap:0 PCMU/8000
+m=audio ${(0, utils_1.randomInt)()} RTP/SAVP 109 101
+a=rtpmap:109 OPUS/16000
+a=fmtp:109 useinbandfec=1;usedtx=0
 a=rtpmap:101 telephone-event/8000
 a=fmtp:101 0-15
 a=sendrecv
+a=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:${utils_1.localKey}
   `.trim();
-            const inviteMessage = new sip_message_1.RequestMessage(`INVITE sip:${callee}@${this.sipInfo.domain} SIP/2.0`, {
-                'Call-Id': (0, utils_1.uuid)(),
-                Contact: `<sip:${this.fakeEmail};transport=tcp>;expires=600`,
+            const inviteMessage = new sip_message_1.RequestMessage(`INVITE sip:${callee} SIP/2.0`, {
+                Via: `SIP/2.0/TLS ${this.client.localAddress}:${this.client.localPort};rport;branch=${(0, utils_1.branch)()};alias`,
+                'Max-Forwards': 70,
                 From: `<sip:${this.sipInfo.username}@${this.sipInfo.domain}>;tag=${(0, utils_1.uuid)()}`,
-                To: `<sip:${callee}@${this.sipInfo.domain}>`,
-                Via: `SIP/2.0/TCP ${this.fakeDomain};branch=${(0, utils_1.branch)()}`,
+                To: `<sip:${callee}@sip.ringcentral.com>`,
+                Contact: ` <sip:${this.sipInfo.username}@${this.client.localAddress}:${this.client.localPort};transport=TLS;ob>`,
+                'Call-ID': (0, utils_1.uuid)(),
+                Route: `<sip:${this.sipInfo.outboundProxy};transport=tls;lr>`,
+                Allow: `PRACK, INVITE, ACK, BYE, CANCEL, UPDATE, INFO, SUBSCRIBE, NOTIFY, REFER, MESSAGE, OPTIONS`,
+                Supported: `replaces, 100rel, timer, norefersub`,
+                'Session-Expires': 1800,
+                'Min-SE': 90,
                 'Content-Type': 'application/sdp',
             }, offerSDP);
-            if (callerId) {
-                inviteMessage.headers['P-Asserted-Identity'] = `sip:${callerId}@${this.sipInfo.domain}`;
-            }
             const inboundMessage = yield this.send(inviteMessage, true);
             const proxyAuthenticate = inboundMessage.headers['Proxy-Authenticate'];
             const nonce = proxyAuthenticate.match(/, nonce="(.+?)"/)[1];
