@@ -44,7 +44,8 @@ class Streamer extends EventEmitter {
   }
 
   public get finished() {
-    return this.buffer.length < 640;
+    // return this.buffer.length < 640;
+    return this.buffer.length < 160;
   }
 
   private sendPacket() {
