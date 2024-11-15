@@ -34,7 +34,7 @@ o=- ${Date.now()} 0 IN IP4 ${localAddress}
 s=${client}
 c=IN IP4 ${localAddress}
 t=0 0
-m=audio ${(0, utils_1.randomInt)()} RTP/AVP ${protocolIDs}
+m=audio ${(0, utils_1.randomInt)()} RTP/SAVP ${protocolIDs}
 a=sendrecv
 ${attributes}
 a=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:${utils_1.localKey}

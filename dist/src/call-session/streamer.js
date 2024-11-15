@@ -51,7 +51,8 @@ class Streamer extends events_1.default {
         });
     }
     get finished() {
-        return this.buffer.length < 640;
+        // return this.buffer.length < 640;
+        return this.buffer.length < 160;
     }
     sendPacket() {
         if (!this.callSession.disposed && !this.paused && !this.finished) {
