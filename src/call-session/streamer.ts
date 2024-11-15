@@ -3,7 +3,7 @@ import EventEmitter from 'events';
 import { RtpHeader, RtpPacket } from 'werift-rtp';
 
 import type CallSession from '.';
-import { opus } from '../codec';
+// import { opus } from '../codec';
 import { randomInt } from '../utils';
 
 class Streamer extends EventEmitter {

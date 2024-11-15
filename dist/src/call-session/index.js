@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dgram_1 = __importDefault(require("dgram"));
 const events_1 = __importDefault(require("events"));
 const werift_rtp_1 = require("werift-rtp");
-const codec_1 = require("../codec");
+// import { opus } from '../codec';
 const dtmf_1 = __importDefault(require("../dtmf"));
 const sip_message_1 = require("../sip-message");
 const utils_1 = require("../utils");
@@ -109,7 +109,7 @@ class CallSession extends events_1.default {
                 }
                 else {
                     try {
-                        rtpPacket.payload = codec_1.opus.decode(rtpPacket.payload);
+                        // rtpPacket.payload = opus.decode(rtpPacket.payload);
                         this.emit('audioPacket', rtpPacket);
                     }
                     catch (_a) {
