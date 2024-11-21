@@ -14,7 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = __importDefault(require("events"));
 const werift_rtp_1 = require("werift-rtp");
-// import { opus } from '../codec';
 const utils_1 = require("../utils");
 class Streamer extends events_1.default {
     constructor(callSesstion, buffer, payloadType = 0) {
@@ -57,7 +56,6 @@ class Streamer extends events_1.default {
     }
     sendPacket() {
         if (!this.callSession.disposed && !this.paused && !this.finished) {
-            //       const temp = opus.encode(this.buffer.subarray(0, 640));
             const temp = this.buffer.subarray(0, 160);
             this.buffer = this.buffer.subarray(160);
             const rtpPacket = new werift_rtp_1.RtpPacket(new werift_rtp_1.RtpHeader({

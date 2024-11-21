@@ -3,7 +3,6 @@ import EventEmitter from 'events';
 
 import { RtpHeader, RtpPacket, SrtpSession } from 'werift-rtp';
 
-// import { opus } from '../codec';
 import DTMF from '../dtmf';
 import {
   RequestMessage,
@@ -126,10 +125,9 @@ abstract class CallSession extends EventEmitter {
         }
       } else {
         try {
-          // rtpPacket.payload = opus.decode(rtpPacket.payload);
           this.emit('audioPacket', rtpPacket);
         } catch {
-          console.error('opus decode failed');
+          console.error('emit packet failed');
         }
       }
     });
