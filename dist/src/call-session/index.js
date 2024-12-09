@@ -42,7 +42,7 @@ class CallSession extends events_1.default {
         });
     }
     get callId() {
-        return this.sipMessage.headers['Call-ID'];
+        return this.sipMessage.headers['Call-Id'];
     }
     send(data) {
         this.socket.send(data, this.remotePort, this.remoteIP);
@@ -50,7 +50,7 @@ class CallSession extends events_1.default {
     hangup() {
         return __awaiter(this, void 0, void 0, function* () {
             const requestMessage = new sip_message_1.RequestMessage(`BYE sip:${this.softphone.sipInfo.domain} SIP/2.0`, {
-                'Call-ID': this.callId,
+                'Call-Id': this.callId,
                 From: this.localPeer,
                 To: this.remotePeer,
                 Via: `SIP/2.0/TLS ${this.softphone.fakeDomain};branch=${(0, utils_1.branch)()}`,
@@ -121,7 +121,7 @@ class CallSession extends events_1.default {
             // send a message to remote server so that it knows where to reply
             this.send('hello');
             const byeHandler = (inboundMessage) => {
-                if (inboundMessage.headers['Call-ID'] !== this.callId) {
+                if (inboundMessage.headers['Call-Id'] !== this.callId) {
                     return;
                 }
                 if (inboundMessage.headers.CSeq.endsWith(' BYE')) {
@@ -147,7 +147,7 @@ class CallSession extends events_1.default {
             From: this.localPeer,
             To: this.remotePeer,
             Contact: `<sip:${this.softphone.sipInfo.username}@${this.softphone.client.localAddress}:${this.softphone.client.localPort};transport=TLS;ob>`,
-            'Call-ID': this.callId,
+            'Call-Id': this.callId,
             Event: 'refer',
             Expires: 600,
             Supported: 'replaces, 100rel, timer, norefersub',

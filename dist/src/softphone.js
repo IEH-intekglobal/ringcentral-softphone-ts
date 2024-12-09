@@ -38,13 +38,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = __importDefault(require("events"));
 const tls_1 = __importDefault(require("tls"));
 const wait_for_async_1 = __importDefault(require("wait-for-async"));
-const sip_message_1 = require("./sip-message");
-const utils_1 = require("./utils");
 const inbound_1 = __importStar(require("./call-session/inbound"));
 const outbound_1 = __importDefault(require("./call-session/outbound"));
+const sip_message_1 = require("./sip-message");
+const utils_1 = require("./utils");
 const defaultSDPConfig = {
     client: 'rc-softphone-ts',
-    protocols: inbound_1.defaultProtocols
+    protocols: inbound_1.defaultProtocols,
 };
 class Softphone extends events_1.default {
     constructor(sipInfo, sdpConfig = {}) {
@@ -100,7 +100,7 @@ class Softphone extends events_1.default {
                     'Max-Forwards': '70',
                     From: `<sip:${this.sipInfo.username}@${this.sipInfo.domain}>;tag=${fromTag}`,
                     To: `<sip:${this.sipInfo.username}@${this.sipInfo.domain}>`,
-                    'Call-ID': this.registerCallId,
+                    'Call-Id': this.registerCallId,
                     Supported: 'outbound, path',
                     Contact: `<sip:${this.sipInfo.username}@${this.client.localAddress}:${this.client.localPort};transport=TLS;ob>;reg-id=1;+sip.instance="<urn:uuid:${this.instanceId}>"`,
                     Expires: 300,
@@ -128,7 +128,7 @@ class Softphone extends events_1.default {
                 }
                 const outboundMessage = new sip_message_1.OutboundMessage('SIP/2.0 100 Trying', {
                     Via: inboundMessage.headers.Via,
-                    'Call-ID': inboundMessage.headers['Call-ID'],
+                    'Call-Id': inboundMessage.headers['Call-Id'],
                     From: inboundMessage.headers.From,
                     To: inboundMessage.headers.To,
                     CSeq: inboundMessage.headers.CSeq,
@@ -214,7 +214,7 @@ a=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:${utils_1.localKey}
                 From: `<sip:${this.sipInfo.username}@${this.sipInfo.domain}>;tag=${(0, utils_1.uuid)()}`,
                 To: `<sip:${callee}@sip.ringcentral.com>`,
                 Contact: ` <sip:${this.sipInfo.username}@${this.client.localAddress}:${this.client.localPort};transport=TLS;ob>`,
-                'Call-ID': (0, utils_1.uuid)(),
+                'Call-Id': (0, utils_1.uuid)(),
                 Route: `<sip:${this.sipInfo.outboundProxy};transport=tls;lr>`,
                 Allow: `PRACK, INVITE, ACK, BYE, CANCEL, UPDATE, INFO, SUBSCRIBE, NOTIFY, REFER, MESSAGE, OPTIONS`,
                 Supported: `replaces, 100rel, timer, norefersub`,

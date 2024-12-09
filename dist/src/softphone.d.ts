@@ -1,9 +1,9 @@
 import EventEmitter from 'events';
 import { TLSSocket } from 'tls';
 import type SipInfoResponse from '@rc-ex/core/lib/definitions/SipInfoResponse';
-import { InboundMessage, OutboundMessage } from './sip-message';
 import InboundCallSession, { Protocol } from './call-session/inbound';
 import OutboundCallSession from './call-session/outbound';
+import { InboundMessage, OutboundMessage } from './sip-message';
 type SDPConfig = {
     protocols: Protocol[];
     client: string;

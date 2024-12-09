@@ -52,7 +52,7 @@ abstract class CallSession extends EventEmitter {
   }
 
   public get callId() {
-    return this.sipMessage.headers['Call-ID'];
+    return this.sipMessage.headers['Call-Id'];
   }
 
   public send(data: string | Buffer) {
@@ -63,7 +63,7 @@ abstract class CallSession extends EventEmitter {
     const requestMessage = new RequestMessage(
       `BYE sip:${this.softphone.sipInfo.domain} SIP/2.0`,
       {
-        'Call-ID': this.callId,
+        'Call-Id': this.callId,
         From: this.localPeer,
         To: this.remotePeer,
         Via: `SIP/2.0/TLS ${this.softphone.fakeDomain};branch=${branch()}`,
@@ -101,7 +101,6 @@ abstract class CallSession extends EventEmitter {
     }
   }
 
-  
   // buffer is the content of a audio file, it is supposed to be PCMU/8000 encoded.
   // The audio should be playable by command: ffplay -autoexit -f mulaw -ar 8000 test.raw
   public streamAudio(input: Buffer, payloadType: number = 0) {
@@ -139,7 +138,7 @@ abstract class CallSession extends EventEmitter {
     this.send('hello');
 
     const byeHandler = (inboundMessage: InboundMessage) => {
-      if (inboundMessage.headers['Call-ID'] !== this.callId) {
+      if (inboundMessage.headers['Call-Id'] !== this.callId) {
         return;
       }
       if (inboundMessage.headers.CSeq.endsWith(' BYE')) {
@@ -158,16 +157,18 @@ abstract class CallSession extends EventEmitter {
     this.socket?.close();
   }
 
-  public transfer(transferTo: number) {
+  public transfer(transferTo: string) {
     const requestMessage = new RequestMessage(
       `REFER sip:${this.softphone.sipInfo.username}@${this.softphone.sipInfo.outboundProxy};transport=tls SIP/2.0`,
       {
-        Via: `SIP/2.0/TLS ${this.softphone.client.localAddress}:${this.softphone.client.localPort};rport;branch=${branch()};alias`,
+        Via: `SIP/2.0/TLS ${this.softphone.client.localAddress}:${
+          this.softphone.client.localPort
+        };rport;branch=${branch()};alias`,
         'Max-Forwards': 70,
         From: this.localPeer,
         To: this.remotePeer,
         Contact: `<sip:${this.softphone.sipInfo.username}@${this.softphone.client.localAddress}:${this.softphone.client.localPort};transport=TLS;ob>`,
-        'Call-ID': this.callId,
+        'Call-Id': this.callId,
         Event: 'refer',
         Expires: 600,
         Supported: 'replaces, 100rel, timer, norefersub',

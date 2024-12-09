@@ -30,37 +30,37 @@ class OutboundCallSession extends _1.default {
                 if (message.headers.CSeq !== this.sipMessage.headers.CSeq) {
                     return;
                 }
-                if (message.subject.startsWith('SIP/2.0 486')) {
-                    this.softphone.off('message', answerHandler);
-                    this.emit('busy');
+                if (message.subject.startsWith("SIP/2.0 486")) {
+                    this.softphone.off("message", answerHandler);
+                    this.emit("busy");
                     this.dispose();
                     return;
                 }
-                if (message.subject.startsWith('SIP/2.0 200')) {
-                    this.softphone.off('message', answerHandler);
-                    this.emit('answered');
+                if (message.subject.startsWith("SIP/2.0 200")) {
+                    this.softphone.off("message", answerHandler);
+                    this.emit("answered");
                     const ackMessage = new sip_message_1.RequestMessage(`ACK ${(0, utils_1.extractAddress)(this.remotePeer)} SIP/2.0`, {
-                        'Call-ID': this.callId,
+                        "Call-Id": this.callId,
                         From: this.localPeer,
                         To: this.remotePeer,
                         Via: this.sipMessage.headers.Via,
-                        CSeq: this.sipMessage.headers.CSeq.replace(' INVITE', ' ACK'),
+                        CSeq: this.sipMessage.headers.CSeq.replace(" INVITE", " ACK"),
                     });
                     this.softphone.send(ackMessage);
                 }
             };
-            this.softphone.on('message', answerHandler);
-            this.once('answered', () => __awaiter(this, void 0, void 0, function* () { return this.startLocalServices(); }));
+            this.softphone.on("message", answerHandler);
+            this.once("answered", () => __awaiter(this, void 0, void 0, function* () { return this.startLocalServices(); }));
         });
     }
     cancel() {
         return __awaiter(this, void 0, void 0, function* () {
             const requestMessage = new sip_message_1.RequestMessage(`CANCEL ${(0, utils_1.extractAddress)(this.remotePeer)} SIP/2.0`, {
-                'Call-ID': this.callId,
+                "Call-Id": this.callId,
                 From: this.localPeer,
                 To: (0, utils_1.withoutTag)(this.remotePeer),
                 Via: this.sipMessage.headers.Via,
-                CSeq: this.sipMessage.headers.CSeq.replace(' INVITE', ' CANCEL'),
+                CSeq: this.sipMessage.headers.CSeq.replace(" INVITE", " CANCEL"),
             });
             this.softphone.send(requestMessage);
         });

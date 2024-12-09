@@ -1,9 +1,9 @@
 import CallSession from '.';
 import { OutboundMessage, type InboundMessage } from '../sip-message';
 import type Softphone from '../softphone';
-import { localKey, randomInt, extractPhoneNumber } from '../utils';
+import { extractPhoneNumber, localKey, randomInt } from '../utils';
 
-export type Protocol = { id: number, rtpmap: string, fmtp?: string };
+export type Protocol = { id: number; rtpmap: string; fmtp?: string };
 export const defaultProtocols: Protocol[] = [
   { id: 0, rtpmap: 'pcmu/8000' },
   { id: 9, rtpmap: 'g722/8000' },
@@ -11,11 +11,21 @@ export const defaultProtocols: Protocol[] = [
   { id: 101, rtpmap: 'telephone-event/8000', fmtp: '0-15' },
   // { id: 103, rtpmap: 'telephone-event/16000', fmtp: '0-15' },
   // { id: 109, rtpmap: 'OPUS/16000', fmtp: 'useinbandfec=1;usedtx=0' },
-]
+];
 
-export function createSDPAnswer(protocols: Protocol[] = defaultProtocols, client = 'rc-ssoftphone-ts', localAddress='127.0.0.1') {
-  const protocolIDs = protocols.map(p=>p.id).join(' ');
-  const attributes = protocols.map(p=>`a=rtpmap:${p.id} ${p.rtpmap}`+(p.fmtp?`\na=fmtp:${p.id} ${p.fmtp}`:'')).join('\n');
+export function createSDPAnswer(
+  protocols: Protocol[] = defaultProtocols,
+  client = 'rc-ssoftphone-ts',
+  localAddress = '127.0.0.1',
+) {
+  const protocolIDs = protocols.map((p) => p.id).join(' ');
+  const attributes = protocols
+    .map(
+      (p) =>
+        `a=rtpmap:${p.id} ${p.rtpmap}` +
+        (p.fmtp ? `\na=fmtp:${p.id} ${p.fmtp}` : ''),
+    )
+    .join('\n');
   return `
 v=0
 o=- ${Date.now()} 0 IN IP4 ${localAddress}
@@ -42,12 +52,16 @@ class InboundCallSession extends CallSession {
   }
 
   public async answer(protocols?: Protocol[], client?: string) {
-    const answerSDP = createSDPAnswer(protocols, client, this.softphone.client.localAddress);
+    const answerSDP = createSDPAnswer(
+      protocols,
+      client,
+      this.softphone.client.localAddress,
+    );
     const newMessage = new OutboundMessage(
       'SIP/2.0 200 OK',
       {
         Via: this.sipMessage.headers.Via,
-        'Call-ID': this.sipMessage.headers['Call-ID'],
+        'Call-Id': this.sipMessage.headers['Call-Id'],
         From: this.sipMessage.headers.From,
         To: this.sipMessage.headers.To,
         CSeq: this.sipMessage.headers.CSeq,

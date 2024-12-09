@@ -25,6 +25,6 @@ declare abstract class CallSession extends EventEmitter {
     streamAudio(input: Buffer, payloadType?: number): Streamer;
     protected startLocalServices(): Promise<void>;
     protected dispose(): void;
-    transfer(transferTo: number): void;
+    transfer(transferTo: string): void;
 }
 export default CallSession;

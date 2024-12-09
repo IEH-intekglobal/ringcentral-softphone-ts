@@ -26,8 +26,11 @@ exports.defaultProtocols = [
     // { id: 109, rtpmap: 'OPUS/16000', fmtp: 'useinbandfec=1;usedtx=0' },
 ];
 function createSDPAnswer(protocols = exports.defaultProtocols, client = 'rc-ssoftphone-ts', localAddress = '127.0.0.1') {
-    const protocolIDs = protocols.map(p => p.id).join(' ');
-    const attributes = protocols.map(p => `a=rtpmap:${p.id} ${p.rtpmap}` + (p.fmtp ? `\na=fmtp:${p.id} ${p.fmtp}` : '')).join('\n');
+    const protocolIDs = protocols.map((p) => p.id).join(' ');
+    const attributes = protocols
+        .map((p) => `a=rtpmap:${p.id} ${p.rtpmap}` +
+        (p.fmtp ? `\na=fmtp:${p.id} ${p.fmtp}` : ''))
+        .join('\n');
     return `
 v=0
 o=- ${Date.now()} 0 IN IP4 ${localAddress}
@@ -54,7 +57,7 @@ class InboundCallSession extends _1.default {
             const answerSDP = createSDPAnswer(protocols, client, this.softphone.client.localAddress);
             const newMessage = new sip_message_1.OutboundMessage('SIP/2.0 200 OK', {
                 Via: this.sipMessage.headers.Via,
-                'Call-ID': this.sipMessage.headers['Call-ID'],
+                'Call-Id': this.sipMessage.headers['Call-Id'],
                 From: this.sipMessage.headers.From,
                 To: this.sipMessage.headers.To,
                 CSeq: this.sipMessage.headers.CSeq,
