@@ -132,11 +132,12 @@ class Softphone extends EventEmitter {
       this.send(newMessage);
     };
     sipRegister();
+    // Set to refresh registration every 1.9 minutes as a potential fix for idle disconnection (observed timeout ~2 minutes).
     this.intervalHandle = setInterval(
       () => {
         sipRegister();
       },
-      3 * 60 * 1000, // refresh registration every 3 minutes
+      1.9 * 60 * 1000, // refresh registration every 1.9 minutes. Original delay was 3 minutes.
     );
     this.on('message', (inboundMessage) => {
       if (!inboundMessage.subject.startsWith('INVITE sip:')) {

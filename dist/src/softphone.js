@@ -119,9 +119,10 @@ class Softphone extends events_1.default {
                 this.send(newMessage);
             });
             sipRegister();
+            // Set to refresh registration every 1.9 minutes as a potential fix for idle disconnection (observed timeout ~2 minutes).
             this.intervalHandle = setInterval(() => {
                 sipRegister();
-            }, 3 * 60 * 1000);
+            }, 1.9 * 60 * 1000);
             this.on('message', (inboundMessage) => {
                 if (!inboundMessage.subject.startsWith('INVITE sip:')) {
                     return;
